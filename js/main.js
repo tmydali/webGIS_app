@@ -9,6 +9,7 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 }).addTo(mymap);
 
 var layerGroup = L.layerGroup().addTo(mymap);
+var bufferGroup = L.layerGroup().addTo(mymap);
 // on click
 function onMapClick(e) {
 	if(e.originalEvent.button == 0) {
@@ -17,8 +18,16 @@ function onMapClick(e) {
  	}
 }
 
-function onClick() {
+function clearMap() {
 	layerGroup.clearLayers();
+	bufferGroup.clearLayers();
 }
+
+function buffer_500m() {
+	var buffered = turf.buffer(layerGroup.toGeoJSON(), 0.5, {units: 'kilometers', steps: 64});
+	L.geoJSON(buffered).addTo(bufferGroup);
+	console.log(buffered);
+}
+
 
 mymap.on('click', onMapClick);
