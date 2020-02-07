@@ -5,15 +5,15 @@
 		<link rel=stylesheet href="style.css"/>
 		<link rel="stylesheet" href="js/leaflet/leaflet.css" />
 		<script src="js/leaflet/leaflet.js"></script>
-		<script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
+		<script src="js/turf.min.js" charset="utf-8"></script>
 	</head>
 	<body>
 		<div id="map-wrapper">
 			<div id="mapid"></div>
-			<script src="js/main.js"></script>
+			<script type="module" src="js/main.js"></script>
 			<div id="button_div">
-				<button onclick='clearMap()'>Clear Map</button>
-				<button onclick='buffer_500m()'>500m Buffer</button>
+				<button id="clrMap">Clear Map</button>
+				<button id="bfr">500m Buffer</button>
 			</div>
 		</div>
 		

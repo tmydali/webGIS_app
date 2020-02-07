@@ -1,3 +1,5 @@
+import * as Basics from './basic_op.js';
+
 var mymap = L.map('mapid').setView([22.999, 120.220], 17);
 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
     attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
@@ -9,25 +11,21 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 }).addTo(mymap);
 
 var layerGroup = L.layerGroup().addTo(mymap);
-var bufferGroup = L.layerGroup().addTo(mymap);
-// on click
-function onMapClick(e) {
-	if(e.originalEvent.button == 0) {
-		//alert("You clicked the map at " + e.latlng);
-		L.marker(e.latlng).addTo(layerGroup);
- 	}
-}
+Basics.addPointListener(mymap, layerGroup);
+
+
+
+document.getElementById("clrMap").addEventListener("click", () =>
+	Basics.clearLayer(layerGroup));
+document.getElementById("bfr").addEventListener("click", buffer);
+
 
 function clearMap() {
-	layerGroup.clearLayers();
-	bufferGroup.clearLayers();
+	Basics.clearLayer(layerGroup);
 }
 
-function buffer_500m() {
-	var buffered = turf.buffer(layerGroup.toGeoJSON(), 0.5, {units: 'kilometers', steps: 64});
-	L.geoJSON(buffered).addTo(bufferGroup);
-	console.log(buffered);
+function buffer() {
+	let buffer = Basics.buffer(layerGroup, 500);
+	L.geoJSON(buffer).addTo(layerGroup);
 }
 
-
-mymap.on('click', onMapClick);
