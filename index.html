@@ -2,20 +2,27 @@
 <html>
 	<head>
 		<title>WebGIS app</title>
-		<link rel=stylesheet href="style.css"/>
+		<link rel=stylesheet href="styles.css"/>
 		<link rel="stylesheet" href="js/leaflet/leaflet.css" />
+		<script src="js/jquery-3.4.1.min.js"></script>
 		<script src="js/leaflet/leaflet.js"></script>
 		<script src="js/turf.min.js" charset="utf-8"></script>
 	</head>
 	<body>
 		<div id="map-wrapper">
 			<div id="mapid"></div>
-			<script type="module" src="js/main.js"></script>
-			<div id="button_div">
-				<button id="clrMap">Clear Map</button>
-				<button id="bfr">500m Buffer</button>
+			
+			<div id="functions">
+				<button id="clear_btn">Clear Map</button>
+				<button id="buffer_btn">500m Buffer</button>
+				<button id="upload_btn">Upload</button>
 			</div>
+			<script type="module" src="js/main.js"></script>
+		</div>
+		<div id="popup-window">
+			<button id="close_btn">x</button>
+			<div id='popup-content'></div>
 		</div>
 		
 	</body>
-</html>
+</html>s

@@ -1,0 +1,45 @@
+html { height: 100%; }
+body { height: 100%; }
+
+#mapid {
+	height: 100%;
+	z-index: 1;
+}
+
+#functions {
+	z-index: 2;
+	position: fixed;
+	top: 20px;
+	right: 20px;
+}
+
+#functions button {
+	height: 50px;
+	width: 100px;
+}
+
+#map-wrapper {
+	height: 100%;
+}
+
+#popup-window {
+	z-index: 2;
+	position: fixed;
+	height: 300px;
+	width: 450px;
+	top: 50%;
+	right: 50%;
+	left: 50%;
+	bottom: 50%;
+	margin: -150px 0 0 -225px;
+	border-radius: 15px;
+	background-color: rgba(255,200,200,0.9);
+	display: none;
+}
+#popup-window button { 
+	z-index: 3;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}
+	
