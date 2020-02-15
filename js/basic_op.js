@@ -1,62 +1,57 @@
-export default class Basics {
-	
-	static layerGroup;
-	
-	constructor(map, layerGroup) {
-		this.map = map;
-		Basics.layerGroup = layerGroup;
-	}
-	
-	setButtonCallback() {
-		// button callback
-		$("#clear_btn").click( () => clearLayer(Basics.layerGroup));
-		$("#buffer_btn").click( () => {
-			let buffered = buffer(Basics.layerGroup, 500);
-			L.geoJSON(buffered).addTo(Basics.layerGroup);
+export function setButtonCallback(map, layerGroup) {
+	// tools
+	$("#clear_btn").click( () => clearLayer(layerGroup));
+	$("#buffer_btn").click( () => {
+		let buffered = buffer(layerGroup, 500);
+		L.geoJSON(buffered).addTo(layerGroup);
+	});
+	$('#upload_btn').click( () => {
+		$('#popup-content').html( 
+			'<h2>Choose your own GeoJSON file</h2>' +
+			'<input id="file" type="file" accept=".json, .geojson" />');
+		$('#popup-window').show();
+		$('#file').change( (event) => {
+			var reader = new FileReader();
+			var onReaderLoad = (e) => {
+				try {
+					var obj = JSON.parse(e.target.result);
+					$('#popup-window').hide();
+					L.geoJSON(obj).addTo(layerGroup);
+					console.log(obj);
+				}
+				catch(err) {
+					console.log(err);
+				}
+			}
+			reader.onload = onReaderLoad;
+			reader.readAsText(event.target.files[0]);
 		});
-		$('#upload_btn').click( () => {
-			$('#popup-content').html( 
-				'<h2>Choose your own GeoJSON file</h2>' +
-				'<input id="file" type="file" accept=".json, .geojson" />');
-			$('#popup-window').show();
-			$('#file').change(this.onFileLoad);
-			console.log($('#file'));
-		});
-		$('#close_btn').click( () => {
-			$('#popup-window').hide();
-		});
-	}
+		console.log($('#file'));
+	});
 
-	addPointListener() {
-		this.map.on('click', (e) => {
-			if(e.originalEvent.button == 0) {
-				//alert("You clicked the map at " + e.latlng);
-				L.marker(e.latlng).addTo(Basics.layerGroup);
+	$('#newPT_btn').click( () => {
+		var button = $('<button/>').text("OK").click( () => {
+			let text = $('#text').val();
+			if(!text) { 
+				// empty string
+				console.log('text can\'t be empty');
+			}
+			else {
+				console.log(text);
 			}
 		});
-	}
-	
-	onFileLoad(event) {
-		var reader = new FileReader();
-		var onReaderLoad = (event) => {
-			try {
-				var obj = JSON.parse(event.target.result);
-				$('#popup-window').hide();
-				Basics.addToLayerGroup(obj)
-				console.log(obj);
-			}
-			catch(err) {
-				console.log(err);
-			}
-		}
-		reader.onload = onReaderLoad;
-		reader.readAsText(event.target.files[0]);
-	}
-	
-	static addToLayerGroup(obj) {
-		console.log(Basics.layerGroup);
-		L.geoJSON(obj).addTo(Basics.layerGroup);
-	}
+		$('#popup-content').html( 
+			'<b>Name </b>' +
+			'<input id="text" type="text" />').append(button);
+		
+		$('#popup-window').show();
+		console.log($('#file'));
+	});
+
+	// popup-window
+	$('#close_btn').click( () => {
+		$('#popup-window').hide();
+	});
 }
 
 function clearLayer(layerGroup) {
@@ -74,3 +69,11 @@ function buffer(srcLayer, distance) {
 	return buffered;
 }
 
+export function addPointListener(map, layerGroup) {
+	map.on('click', (e) => {
+		if(e.originalEvent.button == 0) {
+			//alert("You clicked the map at " + e.latlng);
+			L.marker(e.latlng).addTo(layerGroup);
+		}
+	});
+}

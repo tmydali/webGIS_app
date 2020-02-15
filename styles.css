@@ -32,11 +32,12 @@ body { height: 100%; }
 	left: 50%;
 	bottom: 50%;
 	margin: -150px 0 0 -225px;
-	border-radius: 15px;
-	background-color: rgba(255,200,200,0.9);
+	border: 2px gray solid;
+	border-radius: 5px;
+	background-color: rgba(245,230,230,0.9);
 	display: none;
 }
-#popup-window button { 
+#close_btn { 
 	z-index: 3;
 	position: absolute;
 	top: 10px;

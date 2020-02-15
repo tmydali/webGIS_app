@@ -1,4 +1,4 @@
-import Basics from './basic_op.js';
+import * as Basics from './basic_op.js';
 
 var map = L.map('mapid').setView([22.999, 120.220], 17);
 L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
@@ -11,8 +11,5 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
 }).addTo(map);
 
 var layerGroup = L.layerGroup().addTo(map);
-var Bass = new Basics(map, layerGroup);
-Bass.setButtonCallback();
-Bass.addPointListener();
-
-
+Basics.setButtonCallback(map, layerGroup);
+Basics.addPointListener(map, layerGroup);
