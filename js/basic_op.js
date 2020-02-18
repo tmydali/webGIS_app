@@ -1,11 +1,13 @@
 export function setButtonCallback(map, layerGroup) {
 	// tools
-	$("#clear_btn").click( () => clearLayer(layerGroup));
-	$("#buffer_btn").click( () => {
+	$("#clear_btn").button().click( () => clearLayer(layerGroup));
+	$("#buffer_btn").button()
+		.click( () => {
 		let buffered = buffer(layerGroup, 500);
 		L.geoJSON(buffered).addTo(layerGroup);
 	});
-	$('#upload_btn').click( () => {
+	$('#upload_btn').button()
+		.click( () => {
 		$('#popup-content').html( 
 			'<h2>Choose your own GeoJSON file</h2>' +
 			'<input id="file" type="file" accept=".json, .geojson" />');
@@ -29,7 +31,13 @@ export function setButtonCallback(map, layerGroup) {
 		console.log($('#file'));
 	});
 
-	$('#newPT_btn').click( () => {
+	$('#newPT_btn').button()
+		.click( () => {
+		var selector = $('<select id=sel>').selectmenu()
+			.append($('<option>', {value: 'point', text: 'Point'}))
+			.append($('<option>', {value: 'polyline', text: 'Polyline'}))
+			.append($('<option>', {value: 'polygon', text: 'Polygon'}))
+			.show();
 		var button = $('<button/>').text("OK").click( () => {
 			let text = $('#text').val();
 			if(!text) { 
@@ -37,16 +45,19 @@ export function setButtonCallback(map, layerGroup) {
 				console.log('text can\'t be empty');
 			}
 			else {
-				console.log(text);
+				newLayerMode(map, layerGroup, $('#sel').val());
+				$('#popup-window').hide();
 			}
 		});
 		$('#popup-content').html( 
 			'<b>Name </b>' +
-			'<input id="text" type="text" />').append(button);
+			'<input id="text" type="text" />')
+			.append(selector)
+			.append(button);
 		
 		$('#popup-window').show();
-		console.log($('#file'));
 	});
+	
 
 	// popup-window
 	$('#close_btn').click( () => {
@@ -69,11 +80,60 @@ function buffer(srcLayer, distance) {
 	return buffered;
 }
 
-export function addPointListener(map, layerGroup) {
-	map.on('click', (e) => {
-		if(e.originalEvent.button == 0) {
-			//alert("You clicked the map at " + e.latlng);
-			L.marker(e.latlng).addTo(layerGroup);
-		}
-	});
+function newLayerMode(map, layerGroup, type) {
+	// Prepare an temporary layer, lock all the other features, and show and "finish" button
+	var layer = L.layerGroup().addTo(map);
+	$('.func').each( function(index) {
+		$(this).button('option', 'disabled', true);
+		});
+	$('<button>').text('Save')
+		.button()
+		.appendTo($('#functions'))
+		.addClass('func')
+		.click( function(e) {
+			$('.func').each( function(index) {
+				$(this).button('option', 'disabled', false);
+			});
+			map.off('click keypress');
+			//map.off('dbclick');
+			layer.addTo(layerGroup);
+			console.log(layerGroup);
+			$(this).remove();
+		});
+	
+	if(type == 'point') {
+		map.on('click', (e) => {
+			if(e.originalEvent.button == 0) {
+				L.circleMarker(e.latlng).addTo(layer);
+			}
+		});
+		
+	}
+	else if(type == 'polyline') {
+		var pline = L.polyline([]).addTo(layer);
+		var latlngs = [[]], i = 0;
+		map.on('click', (e) => {
+			if(e.originalEvent.button == 0) {
+				latlngs[i].push(e.latlng);
+				pline.setLatLngs(latlngs);
+			}
+		});
+		map.on('keypress', (e) => {
+			if(e.originalEvent.keyCode == 32) {
+				// keyCode 32 is space
+				latlngs.push([]);
+				++i;
+				console.log(pline.getLatLngs());
+			}
+		});
+	}
+	else if (type == 'polygon') {
+		
+	}
 }
+
+function inEditMode() {
+	
+	
+}
+
