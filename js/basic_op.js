@@ -82,11 +82,11 @@ function buffer(srcLayer, distance) {
 
 function newLayerMode(map, layerGroup, type) {
 	// Prepare an temporary layer, lock all the other features, and show and "finish" button
-	var layer = L.layerGroup().addTo(map);
+	var layer = L.featureGroup().addTo(map);
 	$('.func').each( function(index) {
 		$(this).button('option', 'disabled', true);
 		});
-	$('<button>').text('Save')
+	$('<button>').text('Finish')
 		.button()
 		.appendTo($('#functions'))
 		.addClass('func')
@@ -94,9 +94,15 @@ function newLayerMode(map, layerGroup, type) {
 			$('.func').each( function(index) {
 				$(this).button('option', 'disabled', false);
 			});
-			map.off('click keypress');
-			//map.off('dbclick');
+			map.off('click keypress editable:drawing:end');
 			layer.addTo(layerGroup);
+			layer.eachLayer( (item) => {
+				item.disableEdit();
+				if('isEmpty' in item && item.isEmpty()) {
+					layer.removeLayer(item);
+				}
+				//console.log(item);
+			});
 			console.log(layerGroup);
 			$(this).remove();
 		});
@@ -104,36 +110,25 @@ function newLayerMode(map, layerGroup, type) {
 	if(type == 'point') {
 		map.on('click', (e) => {
 			if(e.originalEvent.button == 0) {
-				L.circleMarker(e.latlng).addTo(layer);
+				L.marker(e.latlng).addTo(layer).enableEdit(map);
 			}
 		});
 		
 	}
 	else if(type == 'polyline') {
-		var pline = L.polyline([]).addTo(layer);
-		var latlngs = [[]], i = 0;
-		map.on('click', (e) => {
-			if(e.originalEvent.button == 0) {
-				latlngs[i].push(e.latlng);
-				pline.setLatLngs(latlngs);
-			}
-		});
-		map.on('keypress', (e) => {
-			if(e.originalEvent.keyCode == 32) {
-				// keyCode 32 is space
-				latlngs.push([]);
-				++i;
-				console.log(pline.getLatLngs());
-			}
+		var pline = map.editTools.startPolyline()
+		pline.addTo(layer);
+		map.on('editable:drawing:end', (e) => {
+			pline = map.editTools.startPolyline()
+			pline.addTo(layer);
 		});
 	}
 	else if (type == 'polygon') {
-		
+		var pgon = map.editTools.startPolygon()
+		pgon.addTo(layer);
+		map.on('editable:drawing:end', (e) => {
+			pgon = map.editTools.startPolygon()
+			pgon.addTo(layer);
+		});
 	}
 }
-
-function inEditMode() {
-	
-	
-}
-
