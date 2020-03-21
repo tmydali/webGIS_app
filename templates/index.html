@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>WebGIS app</title>
+		<link rel=stylesheet href="{{ url_for('static', filename='styles.css') }}"/>
+		<link rel="stylesheet" href="{{ url_for('static', filename='js/leaflet/leaflet.css') }}" />
+		<link rel="stylesheet" href="{{ url_for('static', filename='js/jquery-ui-1.12.1.custom/jquery-ui.min.css') }}">
+		<script src="{{ url_for('static', filename='js/jquery-ui-1.12.1.custom/external/jquery/jquery.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/jquery-ui-1.12.1.custom/jquery-ui.min.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/leaflet/leaflet.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/leaflet/plugins/Leaflet.Editable.js') }}"></script>
+		<script src="{{ url_for('static', filename='js/turf.min.js') }}" charset="utf-8"></script>
+	</head>
+	<body>
+		<div id="map-wrapper">
+			<div id="mapid"></div>
+			<div id="functions">
+				<button id="clear_btn" class="func">Clear Map</button>
+				<button id="buffer_btn" class="func">500m Buffer</button>
+				<button id="upload_btn" class="func">Upload</button>
+				<button id="newPT_btn" class="func">New Layer</button>
+				<button id="send_msg" class="func">Send</button>
+			</div>
+			<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+		</div>
+		<div id="popup-window">
+			<button id="close_btn">x</button>
+			<div id='popup-content'></div>
+		</div>
+		
+	</body>
+</html>

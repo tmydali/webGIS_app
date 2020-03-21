@@ -58,6 +58,20 @@ export function setButtonCallback(map, layerGroup) {
 		$('#popup-window').show();
 	});
 	
+	$('#send_msg').button().click( () => {
+		var vectors = JSON.stringify(layerGroup.toGeoJSON());
+		$.ajax({
+			type: 'POST',
+			contentType: 'application/json',
+			url: '/vectors',
+			dataType: 'json', 
+			data: vectors,
+			success: function(data) {
+				console.log(data);
+				L.geoJSON(data).addTo(layerGroup);
+			},
+		});
+	});
 
 	// popup-window
 	$('#close_btn').click( () => {
