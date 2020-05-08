@@ -10,20 +10,43 @@ body { height: 100%; }
 	z-index: 1;
 }
 
-#functions {
+.toolbar {
 	z-index: 2;
-	position: fixed;
+	position: absolute;
 	top: 20px;
 	right: 20px;
 }
 
-#functions button {
+.tools {
 	height: 50px;
 	width: 100px;
 }
 
+.workplace {
+	height: 100%;
+	width: 20%;
+	float: right;
+	box-sizing: border-box;
+}
+
+.wp {
+	height: 50%;
+	padding: 3px;
+	border: solid;
+	background-color: #efefef;
+}
+
+.layer-button {
+	height: 30px;
+	width: 100%;
+	border: none;
+}
+
 #map-wrapper {
 	height: 100%;
+	width: 80%;
+	float: left;
+	position: relative;
 }
 
 #popup-window {

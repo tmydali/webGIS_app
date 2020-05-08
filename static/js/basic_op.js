@@ -59,18 +59,74 @@ export function setButtonCallback(map, layerGroup) {
 	});
 	
 	$('#send_msg').button().click( () => {
-		var vectors = JSON.stringify(layerGroup.toGeoJSON());
-		$.ajax({
-			type: 'POST',
-			contentType: 'application/json',
-			url: '/vectors',
-			dataType: 'json', 
-			data: vectors,
-			success: function(data) {
-				console.log(data);
-				L.geoJSON(data).addTo(layerGroup);
-			},
+		var set_op = ['union', 'intersection', 'symmetric_difference', 'difference', 'identity'];
+		var selector = $('<select id=method-sel>').selectmenu();
+		for(var i of set_op) {
+			selector.append($('<option>', {value: i, text: i}));
+		}
+		selector.show();
+		
+		// get all layer ids
+		var layer_id = [];
+		var list = layerGroup.getLayers();
+		for(var i of list) {
+			layer_id.push(layerGroup.getLayerId(i))
+		}
+		console.log(layer_id);
+		
+		var layerSel1 = $('<select id=layer-sel1>').selectmenu();
+		for(var i of layer_id) {
+			layerSel1.append($('<option>', {value: i, text: i}));
+		}
+		layerSel1.show();
+		var layerSel2 = $('<select id=layer-sel2>').selectmenu();
+		for(var i of layer_id) {
+			layerSel2.append($('<option>', {value: i, text: i}));
+		}
+		layerSel2.show();
+		
+		var button = $('<button/>').text("OK").click( () => {
+			var newLayer = L.featureGroup().addTo(layerGroup);
+			var newId = layerGroup.getLayerId(newLayer);
+			var data = {
+				'method': 'overlay',
+				'id': [newId.toString(), $('#layer-sel1').val().toString(), $('#layer-sel2').val().toString()], 
+				'how': $('#method-sel').val()
+			};
+			
+			var message = JSON.stringify(data);
+			$.ajax({
+				type: 'POST',
+				contentType: 'application/json',
+				url: '/vectors',
+				dataType: 'json', 
+				data: message,
+				success: function(data) {
+					L.geoJSON(data, {
+						style: function() {
+							return {color: 'green'};
+						}
+					}).addTo(newLayer);
+					console.log('Success');
+				},
+				error: function() {
+					layerGroup.removeLayer(newLayer);
+					console.log('Error');
+				}
+			});
+			$('#popup-window').hide();
 		});
+		
+		$('#popup-content').html('method')
+			.append(selector)
+			.append('layer A')
+			.append(layerSel1)
+			.append('layer B')
+			.append(layerSel2)
+			.append(button);
+		
+		$('#popup-window').show();
+		
 	});
 
 	// popup-window
@@ -80,12 +136,24 @@ export function setButtonCallback(map, layerGroup) {
 }
 
 function clearLayer(layerGroup) {
-	// layerGroup is an array
 	console.log(layerGroup.getLayers());
 	layerGroup.clearLayers();
-	/*layerGroup.forEach( item => {
-		item.clearLayers();
-	});*/
+	var data = { 'method': 'clear-all' };
+
+	var message = JSON.stringify(data);
+	$.ajax({
+		type: 'POST',
+		contentType: 'application/json',
+		url: '/vectors',
+		dataType: 'json', 
+		data: message,
+		success: function() {
+			console.log('Success');
+		},
+		error: function() {
+			console.log('Error');
+		}
+	});
 }
 
 function buffer(srcLayer, distance) {
@@ -97,15 +165,15 @@ function buffer(srcLayer, distance) {
 function newLayerMode(map, layerGroup, type) {
 	// Prepare an temporary layer, lock all the other features, and show and "finish" button
 	var layer = L.featureGroup().addTo(map);
-	$('.func').each( function(index) {
+	$('.tools').each( function(index) {
 		$(this).button('option', 'disabled', true);
 		});
 	$('<button>').text('Finish')
 		.button()
-		.appendTo($('#functions'))
-		.addClass('func')
+		.appendTo($('#toolbar'))
+		.addClass('tools')
 		.click( function(e) {
-			$('.func').each( function(index) {
+			$('.tools').each( function(index) {
 				$(this).button('option', 'disabled', false);
 			});
 			map.off('click keypress editable:drawing:end');
@@ -115,9 +183,26 @@ function newLayerMode(map, layerGroup, type) {
 				if('isEmpty' in item && item.isEmpty()) {
 					layer.removeLayer(item);
 				}
-				//console.log(item);
 			});
-			console.log(layerGroup);
+			// send data to server
+			var data = {
+				'method': 'new',
+				'id': [layerGroup.getLayerId(layer).toString()],
+				'data': layer.toGeoJSON()
+			};
+			console.log(data);
+			var message = JSON.stringify(data);
+			$.ajax({
+				type: 'POST',
+				contentType: 'application/json',
+				url: '/vectors',
+				dataType: 'json', 
+				data: message,
+				success: function() {
+					console.log('Success');
+				},
+			});	
+		
 			$(this).remove();
 		});
 	
