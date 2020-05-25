@@ -226,32 +226,36 @@ function create_df_view(layerGroup) {
 			}).appendTo(feature_div);
 			if(i == 0) {
 				column++;
-				$('<div>').text(ckey).appendTo(prop_name_div);
+				createPropNameDiv(ckey);
 			}
 		});
 	};
 	$('<button id="new_col">').text('New').click(function() {
-		$(this).detach();
-		let new_name = 'New Attr';
-		$('<div>').text(new_name).appendTo(prop_name_div);
-		$(this).appendTo(prop_name_div);
-		$('.feature_div').each(function(i) {
-			let props = layer.features[i].properties; 
-			props[new_name] = '';
-			$('<input>').attr({
-				class: 'df_entry',
-				value: props[new_name], 
-				'data-dtype': 'str'
-			}).appendTo(this);
-		});
-		column++;
-		let str = 'repeat(' + column + ',100px)';
-		$('.feature_div').css({'grid-template-columns': str});
-		$('.feature_title').css({'grid-template-columns': str});
+		var new_name = prompt('New name for the column');
+		if(new_name != null) {
+			$(this).detach();
+			new_name = new_name || 'New Attr.';
+			createPropNameDiv(new_name);
+			$(this).appendTo(prop_name_div);
+			$('.feature_div').each(function(i) {
+				let props = layer.features[i].properties; 
+				props[new_name] = '';
+				$('<input>').attr({
+					class: 'df_entry',
+					value: props[new_name], 
+					'data-dtype': 'str'
+				}).appendTo(this);
+			});
+			column++;
+			let str = 'repeat(' + column + ',100px)';
+			$('.feature_div').css({'grid-template-columns': str});
+			$('.feature_title').css({'grid-template-columns': str});
+		}
 		
 	}).appendTo(prop_name_div);
 	column++;
 	
+	column = $('.feature_title').children().length;
 	var str = 'repeat(' + column + ',100px)';
 	$('.feature_div').css({'grid-template-columns': str});
 	$('.feature_title').css({'grid-template-columns': str});
@@ -260,7 +264,7 @@ function create_df_view(layerGroup) {
 	$('<button>').text('OK').click( () => {
 		var keys = [];
 		$('.feature_title').children().each(function() {
-			keys.push($(this).text());
+			keys.push($(this).children('#text').text());
 		});
 		// console.log(keys);
 
@@ -268,6 +272,7 @@ function create_df_view(layerGroup) {
 		$('.feature_div').each(function() {
 			var j = 0;
 			var feature = layer.features[i++];
+			feature.properties = {};
 			var props = feature.properties;
 			$(this).children().each(function() {
 				props[keys[j++]] = $(this).val();
@@ -296,4 +301,41 @@ function create_df_view(layerGroup) {
 	$('<button>').text('Cancel').click( () => {
 		$('#popup-window').hide();
 	}).css({'width': '70px'}).appendTo('#popup-footbar');
+}
+
+function attrRename() {
+	let key = $(this).parent().children('#text').text();
+	let new_key = prompt('Rename for column "' + key + '"?');
+	$(this).parent().children('#text').text(new_key);
+}
+
+function attrDelete() {
+	let key = $(this).parent().children('#text').text();
+	if(confirm('Delete column "' + key + '"?')) {
+		let index = $(this).parent().index();
+		$(this).parent().remove();
+		$('.feature_div').each(function() {
+			$(this).children().each(function(i) {
+				if(i == index) {
+					$(this).remove();
+				}
+			});
+		});
+		let column = $('.feature_title').children().length;
+		let str = 'repeat(' + column + ',100px)';
+		$('.feature_div').css({'grid-template-columns': str});
+		$('.feature_title').css({'grid-template-columns': str});
+	}
+}
+
+function createPropNameDiv(key) {
+	let text = $('<div id="text">').text(key).css({'grid-row': '1 / 3'});
+	let rename_btn = $('<button>').text('R').click(attrRename);
+	let del_btn = $('<button>').text('D').click(attrDelete);
+	let title_div = $('<div>').css({
+		'display': 'grid',
+		'grid-template-rows': '50% 50%',
+		'grid-template-columns': '80% 20%'
+	}).appendTo('#prop_name');
+	title_div.append(del_btn).append(rename_btn).append(text);	
 }
