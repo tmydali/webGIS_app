@@ -13,6 +13,9 @@ class pandaFrame():
 			ID = rawData['id']
 			data = rawData['data']
 			return self.storeData(ID[0], data)
+		elif method == 'clear':
+			ID = rawData['id']
+			return self.clear(ID[0])
 		elif method == 'clear-all':
 			return self.clearAll()
 
@@ -29,13 +32,17 @@ class pandaFrame():
 		gdf.crs = {'init': 'epsg:4326'}
 		self.DF[ID] = gdf
 		print(self.DF.keys())
-		return ''
+		return ('', 204)
+	
+	def clear(self, ID):
+		self.DF.pop(ID)
+		return ('', 204)
 	
 	def clearAll(self):
 		self.DF = {}
 		print(self.DF.keys())
-		return ''
-
+		return ('', 204)
+	
 	def addBuffer(self, layer, radius):
 		buf = layer.buffer(radius)
 		buf = buf.to_crs(epsg=4326)
