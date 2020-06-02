@@ -8,6 +8,7 @@ This is a webGis app with basic GIS tools
 + python 3.6.9
 + flask 1.1.1
 + geopandas 0.5.1
++ Rtree 0.8.3 (需要再安裝C library `sudo apt-get update && apt-get install -y libspatialindex-dev`)
 
 ## Server
 使用python with flask做為後端，首先切換到專案資料夾

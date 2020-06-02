@@ -10,20 +10,69 @@ body { height: 100%; }
 	z-index: 1;
 }
 
-#functions {
+.toolbar {
 	z-index: 2;
-	position: fixed;
+	position: absolute;
 	top: 20px;
 	right: 20px;
 }
 
-#functions button {
+.tools {
 	height: 50px;
 	width: 100px;
 }
 
+.workplace {
+	height: 100%;
+	width: 20%;
+	float: right;
+	box-sizing: border-box;
+}
+
+.wp {
+	height: 50%;
+	padding: 3px;
+	border: solid;
+	background-color: #efefef;
+}
+
+.layer-button {
+	height: 30px;
+	width: 100%;
+	border: none;
+}
+
+.feature_title {
+	padding: 5px;
+	border: solid;
+	border-width: 0 0 2px 0;
+	background-color: lightgray;
+	border-color: gray;
+	display: grid;
+	grid-column-gap: 2px;
+}
+
+.feature_div {
+	padding: 5px;
+	border: solid;
+	border-width: 0 0 2px 0;
+	border-color: gray;
+	display: grid;
+	grid-column-gap: 2px;
+}
+
+#df_container {
+	padding: 5px;
+	display: grid;
+	grid-row-gap: 2px;
+	grid-template-columns: auto;
+}
+
 #map-wrapper {
 	height: 100%;
+	width: 80%;
+	float: left;
+	position: relative;
 }
 
 #popup-window {
@@ -37,14 +86,31 @@ body { height: 100%; }
 	bottom: 50%;
 	margin: -150px 0 0 -225px;
 	border: 2px gray solid;
-	border-radius: 5px;
+	border-radius: 3px;
 	background-color: rgba(245,230,230,0.9);
 	display: none;
+	flex-direction: column;
 }
-#close_btn { 
-	z-index: 3;
-	position: absolute;
-	top: 10px;
-	right: 10px;
+#popup-content {
+	flex: 1 1 auto;
+ 	overflow: scroll;
+}
+
+#popup-toolbar { 
+	flex: 0 1 25spx;
+	display: flex;
+	flex-direction: row-reverse;
+	padding: 2px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+#popup-footbar { 
+	flex: 0 1 40px;
+	display: flex;
+	flex-direction: row-reverse;
+	padding: 2px;
+	width: 100%;
+	box-sizing: border-box;
 }
 	

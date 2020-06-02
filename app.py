@@ -1,7 +1,8 @@
 from flask import Flask, request, render_template
-import geoprocess_v as gpv
+from geoprocess_v import pandaFrame
 
 app = Flask(__name__)
+gpv = pandaFrame()
 
 @app.route('/')
 def index():
@@ -9,9 +10,8 @@ def index():
 
 @app.route('/vectors', methods=['POST'])
 def vectors():
-	gdf = gpv.toDataFrame(request.get_json())
-	buffer = gpv.addBuffer(gdf, 100)
-	return buffer.to_json()
+	# execute command from client and return results
+	return gpv.actions(request.get_json())
 
 if __name__ == '__main__':
 	app.debug = True
