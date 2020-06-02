@@ -1,4 +1,6 @@
 import { sendToServer } from './data_sender.js'
+
+
 export function setButtonCallback(map, layerGroup) {
 	// tools
 	$("#clear_btn").button().click( () => clearLayer(layerGroup));
@@ -29,6 +31,11 @@ export function setButtonCallback(map, layerGroup) {
 					};
 					sendToServer(data, 'new');
 					$('#popup-window').hide();
+					
+					var input = [layerGroup.getLayerId(layer).toString()];
+					add_to_layer_list(input);
+					
+					
 				}
 				catch(err) {
 					console.log(err);
@@ -36,35 +43,14 @@ export function setButtonCallback(map, layerGroup) {
 			}
 			reader.onload = onReaderLoad;
 			reader.readAsText(event.target.files[0]);
+
 		});
 		console.log($('#file'));
 	});
 
 	$('#newPT_btn').button()
 		.click( () => {
-		var selector = $('<select id=sel>').selectmenu()
-			.append($('<option>', {value: 'point', text: 'Point'}))
-			.append($('<option>', {value: 'polyline', text: 'Polyline'}))
-			.append($('<option>', {value: 'polygon', text: 'Polygon'}))
-			.show();
-		$('#popup-footbar').empty();
-		var button = $('<button/>').text("OK").click( () => {
-			let text = $('#text').val();
-			if(!text) { 
-				// empty string
-				console.log('text can\'t be empty');
-			}
-			else {
-				newLayerMode(map, layerGroup, $('#sel').val());
-				$('#popup-window').hide();
-			}
-		}).appendTo('#popup-footbar');
-		$('#popup-content').html( 
-			'<b>Name </b>' +
-			'<input id="text" type="text" />')
-			.append(selector)
-		
-		$('#popup-window').css({'display': 'flex'});
+		new_layer(map,layerGroup);
 	});
 	
 	$('#send_msg').button().click( () => {
@@ -105,6 +91,8 @@ export function setButtonCallback(map, layerGroup) {
 			};
 			sendToServer(data, 'overlay', [layerGroup, newLayer]);
 			$('#popup-window').hide();
+			var input =[newId.toString()];
+			add_to_layer_list(input);
 		}).appendTo('#popup-footbar');
 		
 		$('#popup-content').html('method')
@@ -129,8 +117,32 @@ export function setButtonCallback(map, layerGroup) {
 		$('#popup-window').hide();
 		$('#popup-footbar').empty();
 	});
-}
 
+	$('#new_layer').button().click(() => {
+		new_layer(map,layerGroup);
+	});
+
+	$('.wp').click( (e) => {
+		if (e.target.classList.contains('layer_delete')) {
+			$(e.target.closest('.todotlist_item')).remove();
+		}
+	});
+}
+function add_to_layer_list(input){
+
+	const result = `
+		  <div class="todotlist_item form-check">
+			<input class="layer_box_checkbox" type="checkbox" value="" id="defaultCheck1" checked="checked">
+			<button type="button" class="layer_box_content form-check-label" for="defaultCheck1">
+			${input}
+			</button>
+			<button type="button" class="layer_delete">刪除</button>
+			<hr>
+		  </div>`;
+	
+	$('#layer-box').append(result);
+	
+}
 function clearLayer(layerGroup) {
 	console.log(layerGroup.getLayers());
 	layerGroup.clearLayers();
@@ -179,6 +191,8 @@ function newLayerMode(map, layerGroup, type) {
 				'data': layer.toGeoJSON()
 			};
 			sendToServer(data, 'new');
+			var input =[layerGroup.getLayerId(layer).toString()];
+			add_to_layer_list(input);
 			$(this).remove();
 		});
 	
@@ -338,4 +352,29 @@ function createPropNameDiv(key) {
 		'grid-template-columns': '80% 20%'
 	}).appendTo('#prop_name');
 	title_div.append(del_btn).append(rename_btn).append(text);	
+}
+function new_layer(map, layerGroup){
+	var selector = $('<select id=sel>').selectmenu()
+			.append($('<option>', {value: 'point', text: 'Point'}))
+			.append($('<option>', {value: 'polyline', text: 'Polyline'}))
+			.append($('<option>', {value: 'polygon', text: 'Polygon'}))
+			.show();
+		$('#popup-footbar').empty();
+		var button = $('<button/>').text("OK").click( () => {
+			let text = $('#text').val();
+			if(!text) { 
+				// empty string
+				console.log('text can\'t be empty');
+			}
+			else {
+				newLayerMode(map, layerGroup, $('#sel').val());
+				$('#popup-window').hide();
+			}
+		}).appendTo('#popup-footbar');
+
+		$('#popup-content').html( 
+			'<b>Name </b>' +
+			'<input id="text" type="text" />')
+			.append(selector)			
+		$('#popup-window').css({'display': 'flex'});
 }
