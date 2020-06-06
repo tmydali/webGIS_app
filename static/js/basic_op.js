@@ -1,7 +1,10 @@
 import { sendToServer } from './data_sender.js'
+import { sidPointer, layerList } from './layers.js'
+import { getLayerBySid, addToLayerList, clearLayer} from './layers.js'
+
 export function setButtonCallback(map, layerGroup) {
 	// tools
-	$("#clear_btn").button().click( () => clearLayer(layerGroup));
+	$("#clear_btn").button().click(clearLayer);
 	$("#buffer_btn").button()
 		.click( () => {
 		let buffered = buffer(layerGroup, 500);
@@ -29,6 +32,12 @@ export function setButtonCallback(map, layerGroup) {
 					};
 					sendToServer(data, 'new');
 					$('#popup-window').hide();
+					
+					var input ={
+						'name': 'layer ' + sidPointer,
+						'layer': layer
+					}
+					addToLayerList(input);
 				}
 				catch(err) {
 					console.log(err);
@@ -36,38 +45,17 @@ export function setButtonCallback(map, layerGroup) {
 			}
 			reader.onload = onReaderLoad;
 			reader.readAsText(event.target.files[0]);
+
 		});
 		console.log($('#file'));
 	});
 
 	$('#newPT_btn').button()
 		.click( () => {
-		var selector = $('<select id=sel>').selectmenu()
-			.append($('<option>', {value: 'point', text: 'Point'}))
-			.append($('<option>', {value: 'polyline', text: 'Polyline'}))
-			.append($('<option>', {value: 'polygon', text: 'Polygon'}))
-			.show();
-		$('#popup-footbar').empty();
-		var button = $('<button/>').text("OK").click( () => {
-			let text = $('#text').val();
-			if(!text) { 
-				// empty string
-				console.log('text can\'t be empty');
-			}
-			else {
-				newLayerMode(map, layerGroup, $('#sel').val());
-				$('#popup-window').hide();
-			}
-		}).appendTo('#popup-footbar');
-		$('#popup-content').html( 
-			'<b>Name </b>' +
-			'<input id="text" type="text" />')
-			.append(selector)
-		
-		$('#popup-window').css({'display': 'flex'});
+		new_layer(map,layerGroup);
 	});
 	
-	$('#send_msg').button().click( () => {
+	$('#overlay').button().click( () => {
 		var set_op = ['union', 'intersection', 'symmetric_difference', 'difference', 'identity'];
 		var selector = $('<select id=method-sel>').selectmenu();
 		for(var i of set_op) {
@@ -76,21 +64,16 @@ export function setButtonCallback(map, layerGroup) {
 		selector.show();
 		
 		// get all layer ids
-		var layer_id = [];
-		var list = layerGroup.getLayers();
-		for(var i of list) {
-			layer_id.push(layerGroup.getLayerId(i))
-		}
-		console.log(layer_id);
-		
 		var layerSel1 = $('<select id=layer-sel1>').selectmenu();
-		for(var i of layer_id) {
-			layerSel1.append($('<option>', {value: i, text: i}));
+		for(let obj of layerList) {
+			let id = layerGroup.getLayerId(obj.layer);
+			layerSel1.append($('<option>', {value: id, text: obj.name}));
 		}
 		layerSel1.show();
 		var layerSel2 = $('<select id=layer-sel2>').selectmenu();
-		for(var i of layer_id) {
-			layerSel2.append($('<option>', {value: i, text: i}));
+		for(let obj of layerList) {
+			let id = layerGroup.getLayerId(obj.layer);
+			layerSel2.append($('<option>', {value: id, text: obj.name}));
 		}
 		layerSel2.show();
 		
@@ -105,6 +88,12 @@ export function setButtonCallback(map, layerGroup) {
 			};
 			sendToServer(data, 'overlay', [layerGroup, newLayer]);
 			$('#popup-window').hide();
+			
+			var input ={
+				'name': 'layer ' + sidPointer,
+				'layer': newLayer
+			}
+			addToLayerList(input);
 		}).appendTo('#popup-footbar');
 		
 		$('#popup-content').html('method')
@@ -119,6 +108,7 @@ export function setButtonCallback(map, layerGroup) {
 	});
 	
 	$('#feat_attr').button().click( () => {
+		if(layerList.length == 0) { return; }
 		$('#popup-content').html('<div id="df_container"></div>');
 		create_df_view(layerGroup);
 		$('#popup-window').css({'display': 'flex'});
@@ -129,14 +119,10 @@ export function setButtonCallback(map, layerGroup) {
 		$('#popup-window').hide();
 		$('#popup-footbar').empty();
 	});
-}
 
-function clearLayer(layerGroup) {
-	console.log(layerGroup.getLayers());
-	layerGroup.clearLayers();
-	
-	var data = { 'method': 'clear-all' };
-	sendToServer(data, 'clear-all');
+	$('#new_layer').button().click(() => {
+		new_layer(map,layerGroup);
+	});
 
 }
 
@@ -155,7 +141,6 @@ function newLayerMode(map, layerGroup, type) {
 	$('<button>').text('Finish')
 		.button()
 		.appendTo($('#toolbar'))
-		.addClass('tools')
 		.addClass('tools')
 		.click( function(e) {
 			$('.tools').each( function(index) {
@@ -179,6 +164,12 @@ function newLayerMode(map, layerGroup, type) {
 				'data': layer.toGeoJSON()
 			};
 			sendToServer(data, 'new');
+		
+			var input ={
+				'name': $('#text').val(),
+				'layer': layer
+			}
+			addToLayerList(input);
 			$(this).remove();
 		});
 	
@@ -209,11 +200,11 @@ function newLayerMode(map, layerGroup, type) {
 }
 
 function create_df_view(layerGroup) {
-	var thisLayer = layerGroup.getLayers()[0];
-	var layer = thisLayer.toGeoJSON();
+	let listIndex = 0;
+	let thisLayer = layerList[listIndex].layer;
+	let layer = thisLayer.toGeoJSON();
 	console.log(layerGroup);
-	var column = 0;
-	var prop_name_div = $('<div id="prop_name">').addClass('feature_title').appendTo('#df_container');
+	let prop_name_div = $('<div id="prop_name">').addClass('feature_title').appendTo('#df_container');
 	
 	for(let i=0; i<layer.features.length; i++) {
 		let feature_div = $('<div>').addClass('feature_div').appendTo('#df_container');
@@ -225,7 +216,6 @@ function create_df_view(layerGroup) {
 				'data-dtype': 'str'
 			}).appendTo(feature_div);
 			if(i == 0) {
-				column++;
 				createPropNameDiv(ckey);
 			}
 		});
@@ -246,17 +236,25 @@ function create_df_view(layerGroup) {
 					'data-dtype': 'str'
 				}).appendTo(this);
 			});
-			column++;
+			let column = $('.feature_title').children().length;
+			$('.feature_div').each(function() {
+				$(this).show();
+			});
 			let str = 'repeat(' + column + ',100px)';
 			$('.feature_div').css({'grid-template-columns': str});
 			$('.feature_title').css({'grid-template-columns': str});
 		}
 		
 	}).appendTo(prop_name_div);
-	column++;
 	
-	column = $('.feature_title').children().length;
+	let column = $('.feature_title').children().length;
 	var str = 'repeat(' + column + ',100px)';
+	if(column <= 1) {
+		// remove empty div if no feature
+		$('.feature_div').each(function() {
+			$(this).hide();
+		});
+	}
 	$('.feature_div').css({'grid-template-columns': str});
 	$('.feature_title').css({'grid-template-columns': str});
 	
@@ -288,6 +286,7 @@ function create_df_view(layerGroup) {
 		// put on new layer
 		layer = L.geoJSON(layer);
 		layerGroup.addLayer(layer);
+		layerList[listIndex].layer = layer;
 		var data = {
 			'method': 'new',
 			'id': [layerGroup.getLayerId(layer).toString()],
@@ -338,4 +337,30 @@ function createPropNameDiv(key) {
 		'grid-template-columns': '80% 20%'
 	}).appendTo('#prop_name');
 	title_div.append(del_btn).append(rename_btn).append(text);	
+}
+
+function new_layer(map, layerGroup){
+	var selector = $('<select id=sel>').selectmenu()
+			.append($('<option>', {value: 'point', text: 'Point'}))
+			.append($('<option>', {value: 'polyline', text: 'Polyline'}))
+			.append($('<option>', {value: 'polygon', text: 'Polygon'}))
+			.show();
+		$('#popup-footbar').empty();
+		var button = $('<button/>').text("OK").click( () => {
+			let text = $('#text').val();
+			if(!text) { 
+				// empty string
+				console.log('text can\'t be empty');
+			}
+			else {
+				newLayerMode(map, layerGroup, $('#sel').val());
+				$('#popup-window').hide();
+			}
+		}).appendTo('#popup-footbar');
+
+		$('#popup-content').html( 
+			'<b>Name </b>' +
+			'<input id="text" type="text" />')
+			.append(selector)			
+		$('#popup-window').css({'display': 'flex'});
 }

@@ -41,7 +41,15 @@ body { height: 100%; }
 	width: 100%;
 	border: none;
 }
-
+.layer_box_content {
+	height: 30px;
+	width: 60%;
+	/*padding-right: 80px;*/
+}
+.layer_delete {
+	height: 30px;
+	width: 20%;
+}
 .feature_title {
 	padding: 5px;
 	border: solid;

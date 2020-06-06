@@ -36,6 +36,7 @@ class pandaFrame():
 	
 	def clear(self, ID):
 		self.DF.pop(ID)
+		print(self.DF.keys())
 		return ('', 204)
 	
 	def clearAll(self):
