@@ -1,6 +1,6 @@
 import { sendToServer } from './data_sender.js'
-import { sidPointer, layerList } from './layers.js'
-import { getLayerBySid, addToLayerList, clearLayer} from './layers.js'
+import { sidPointer, layerList, focusLayerSid } from './layers.js'
+import { getLayerBySid, addToLayerList, clearLayer, layerMove} from './layers.js'
 
 export function setButtonCallback(map, layerGroup) {
 	// tools
@@ -22,7 +22,7 @@ export function setButtonCallback(map, layerGroup) {
 			var onReaderLoad = (e) => {
 				try {
 					var obj = JSON.parse(e.target.result);
-					var layer = L.geoJSON(obj).addTo(layerGroup);
+					var layer = L.geoJSON(obj, {'fillOpacity': 0.9}).addTo(layerGroup);
 					console.log(layer);
 					// send data to server
 					var data = {
@@ -120,8 +120,17 @@ export function setButtonCallback(map, layerGroup) {
 		$('#popup-footbar').empty();
 	});
 
+	// sidebar
 	$('#new_layer').button().click(() => {
 		new_layer(map,layerGroup);
+	});
+	
+	$('#layer-up').button().click(() => {
+		layerMove('up');
+	});
+	
+	$('#layer-down').button().click(() => {
+		layerMove('down');
 	});
 
 }
@@ -182,26 +191,27 @@ function newLayerMode(map, layerGroup, type) {
 		
 	}
 	else if(type == 'polyline') {
-		var pline = map.editTools.startPolyline()
+		var pline = map.editTools.startPolyline();
 		pline.addTo(layer);
 		map.on('editable:drawing:end', (e) => {
-			pline = map.editTools.startPolyline()
+			pline = map.editTools.startPolyline();
 			pline.addTo(layer);
 		});
 	}
 	else if (type == 'polygon') {
-		var pgon = map.editTools.startPolygon()
+		var pgon = map.editTools.startPolygon();
+		pgon.setStyle({'fillOpacity': 0.9});
 		pgon.addTo(layer);
 		map.on('editable:drawing:end', (e) => {
-			pgon = map.editTools.startPolygon()
+			pgon = map.editTools.startPolygon();
+			pgon.setStyle({'fillOpacity': 0.9});
 			pgon.addTo(layer);
 		});
 	}
 }
 
 function create_df_view(layerGroup) {
-	let listIndex = 0;
-	let thisLayer = layerList[listIndex].layer;
+	let thisLayer = getLayerBySid(focusLayerSid).layer;
 	let layer = thisLayer.toGeoJSON();
 	console.log(layerGroup);
 	let prop_name_div = $('<div id="prop_name">').addClass('feature_title').appendTo('#df_container');
@@ -286,7 +296,7 @@ function create_df_view(layerGroup) {
 		// put on new layer
 		layer = L.geoJSON(layer);
 		layerGroup.addLayer(layer);
-		layerList[listIndex].layer = layer;
+		getLayerBySid(focusLayerSid).layer = layer;
 		var data = {
 			'method': 'new',
 			'id': [layerGroup.getLayerId(layer).toString()],

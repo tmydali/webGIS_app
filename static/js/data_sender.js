@@ -29,9 +29,8 @@ export function sendToServer(data, method, item=null) {
 			data: message,
 			success: function(data) {
 				L.geoJSON(data, {
-					style: function() {
-						return {color: 'green'};
-					}
+					color: 'green',
+					fillOpacity: 0.9
 				}).addTo(newLayer);
 				console.log('Overlay Success');
 			},
@@ -40,7 +39,7 @@ export function sendToServer(data, method, item=null) {
 				let index = layerList.indexOf(newLayer);
 				layerList.splice(index, 1);
 				$('.todotlist_item').each( function(index) {
-					if(id == $(this).data('layerId')) {
+					if(id == $(this).data('sid')) {
 						$(this).remove();
 					}
 				});
