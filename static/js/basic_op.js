@@ -4,6 +4,37 @@ import { getLayerBySid, addToLayerList, clearLayer, layerMove} from './layers.js
 
 export function setButtonCallback(map, layerGroup) {
 	// tools
+	
+	$("#save_btn").button().click(() => {
+		
+		// get all layer ids
+		$('#popup-footbar').empty();
+		var layerSel1 = $('<select id=layer-sel1>').selectmenu();
+		for(let obj of layerList) {
+
+			let data =JSON.stringify(obj.layer.toGeoJSON());
+			layerSel1.append($('<option>', {value: data, text: obj.name}));
+		}
+		layerSel1.show();
+		
+		var button = $('<button/>').text("OK").click( () => {
+			var data2=$('#layer-sel1').val();
+			var data3=$('#layer-sel1').text();
+			var data_fin ="data:text/json;charset=utf-8," + encodeURIComponent(data2);
+			var url = $('<a/>').text("download JSON")
+			.attr({'href':data_fin,'download':data3+".geojson",'id':'urll'})
+			.appendTo('#popup-window').click(function() { $(this).remove() })[0].click();
+			
+			$('#popup-window').hide();
+		}).appendTo('#popup-footbar');
+		$('#popup-content').html('layer')
+			.append(layerSel1)
+		$('#popup-window').css({'display': 'flex'});
+		
+	});
+
+
+
 	$("#clear_btn").button().click(clearLayer);
 	$("#buffer_btn").button()
 		.click( () => {
