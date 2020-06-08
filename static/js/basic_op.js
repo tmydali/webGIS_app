@@ -1,14 +1,29 @@
 import { sendToServer } from './data_sender.js'
 import { sidPointer, layerList, focusLayerSid } from './layers.js'
-import { getLayerBySid, addToLayerList, clearLayer, layerMove} from './layers.js'
+import { getLayerBySid, addToLayerList, clearLayer,
+		layerMove, getNextColor} from './layers.js'
 
 export function setButtonCallback(map, layerGroup) {
 	// tools
 	$("#clear_btn").button().click(clearLayer);
-	$("#buffer_btn").button()
-		.click( () => {
-		let buffered = buffer(layerGroup, 500);
-		L.geoJSON(buffered).addTo(layerGroup);
+	$("#buffer_btn").button().click( () => {
+		// get all layer ids
+		let layerSel = $('<select id=layer-sel>').selectmenu();
+		for(let obj of layerList) {
+			layerSel.append($('<option>', {value: obj.sid, text: obj.name}));
+		}
+		layerSel.show();
+		$('#popup-content').html('Layer ')
+			.append(layerSel)
+			.append('<br>' + '<b>Buffer range </b>')
+			.append('<input id="number" type="number" />')
+			.append(' meters');
+		$('#popup-footbar').empty();
+		$('<button>').text('OK').click( () => {
+			buffer(layerGroup);
+		}).appendTo('#popup-footbar');
+
+		$('#popup-window').css({'display': 'flex'});
 	});
 	$('#upload_btn').button()
 		.click( () => {
@@ -22,7 +37,10 @@ export function setButtonCallback(map, layerGroup) {
 			var onReaderLoad = (e) => {
 				try {
 					var obj = JSON.parse(e.target.result);
-					var layer = L.geoJSON(obj, {'fillOpacity': 0.9}).addTo(layerGroup);
+					var layer = L.geoJSON(obj, {
+						color: getNextColor(),
+						fillOpacity: 0.9
+					}).addTo(layerGroup);
 					console.log(layer);
 					// send data to server
 					var data = {
@@ -96,11 +114,11 @@ export function setButtonCallback(map, layerGroup) {
 			addToLayerList(input);
 		}).appendTo('#popup-footbar');
 		
-		$('#popup-content').html('method')
+		$('#popup-content').html('<b>Overlay method </b>')
 			.append(selector)
-			.append('layer A')
+			.append('<br> <b>Layer A </b>')
 			.append(layerSel1)
-			.append('layer B')
+			.append('<br> <b>Layer B </b>')
 			.append(layerSel2)
 		
 		$('#popup-window').css({'display': 'flex'});
@@ -135,10 +153,37 @@ export function setButtonCallback(map, layerGroup) {
 
 }
 
-function buffer(srcLayer, distance) {
-	var buffered = turf.buffer(srcLayer.toGeoJSON(), distance, {units: 'meters', steps: 64});
-	console.log(buffered);
-	return buffered;
+function buffer(layerGroup) {
+	if(layerList.length == 0) { return; }
+	
+	console.log($('#layer-sel').val());
+	let srcLayer = getLayerBySid($('#layer-sel').val()).layer;
+	let range = $('#number').val();
+	if(!range) {
+		alert('Enter a number!');
+		return;
+	}
+	let buffered = turf.buffer(srcLayer.toGeoJSON(), range, {units: 'meters'});
+	let layer = L.geoJSON(buffered, {
+		color: getNextColor(),
+		fillOpacity: 0.9
+	}).addTo(layerGroup);
+	console.log(layer);
+	
+	// send data to server
+	var data = {
+		'method': 'new',
+		'id': [layerGroup.getLayerId(layer).toString()],
+		'data': layer.toGeoJSON()
+	};
+	sendToServer(data, 'new');
+	$('#popup-window').hide();
+
+	var input ={
+		'name': 'layer ' + sidPointer,
+		'layer': layer
+	}
+	addToLayerList(input);
 }
 
 function newLayerMode(map, layerGroup, type) {
@@ -191,20 +236,30 @@ function newLayerMode(map, layerGroup, type) {
 		
 	}
 	else if(type == 'polyline') {
-		var pline = map.editTools.startPolyline();
+		let pline = map.editTools.startPolyline();
+		let color = getNextColor();
+		pline.setStyle({color: color});
 		pline.addTo(layer);
 		map.on('editable:drawing:end', (e) => {
 			pline = map.editTools.startPolyline();
+			pline.setStyle({color: color});
 			pline.addTo(layer);
 		});
 	}
 	else if (type == 'polygon') {
-		var pgon = map.editTools.startPolygon();
-		pgon.setStyle({'fillOpacity': 0.9});
+		let pgon = map.editTools.startPolygon();
+		let color = getNextColor();
+		pgon.setStyle({
+			color: color,
+			fillOpacity: 0.9
+		});
 		pgon.addTo(layer);
 		map.on('editable:drawing:end', (e) => {
 			pgon = map.editTools.startPolygon();
-			pgon.setStyle({'fillOpacity': 0.9});
+			pgon.setStyle({
+				color: color,
+				fillOpacity: 0.9
+			});
 			pgon.addTo(layer);
 		});
 	}
@@ -294,7 +349,10 @@ function create_df_view(layerGroup) {
 		layerGroup.removeLayer(thisLayer);
 		sendToServer(data, 'clear');
 		// put on new layer
-		layer = L.geoJSON(layer);
+		layer = L.geoJSON(layer, {
+			color: getNextColor(),
+			fillOpacity: 0.9
+		});
 		layerGroup.addLayer(layer);
 		getLayerBySid(focusLayerSid).layer = layer;
 		var data = {

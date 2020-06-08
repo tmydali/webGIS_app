@@ -5,6 +5,15 @@ export var layerList = []; // {sid: serial sid, name: str, layer: layer object, 
 export var focusLayerSid = -1; // sid
 export var sidPointer = 1;
 
+// color control
+var colorList = ['royalblue', 'hotpink', 'seagreen', 'darkorange', 'gray',
+				 'gold', 'SlateBlue', 'LightCoral', 'SpringGreen', 'FireBrick'];
+var colorPointer = 8;
+export function getNextColor() {
+	colorPointer = (colorPointer+1) % colorList.length;
+	return colorList[colorPointer];
+};
+
 export function makeLayerFocused(sid) {
 	if(sid < 0) { return; }
 	focusLayerSid = sid;

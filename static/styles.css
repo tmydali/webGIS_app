@@ -96,6 +96,7 @@ body { height: 100%; }
 	left: 50%;
 	bottom: 50%;
 	margin: -150px 0 0 -225px;
+	padding: 10px;
 	border: 2px dimgray solid;
 	border-radius: 3px;
 	background-color: Gainsboro;
@@ -109,7 +110,7 @@ body { height: 100%; }
 }
 
 #popup-toolbar { 
-	flex: 0 1 25spx;
+	flex: 0 1 25px;
 	display: flex;
 	flex-direction: row-reverse;
 	padding: 2px;
@@ -124,6 +125,10 @@ body { height: 100%; }
 	padding: 2px;
 	width: 100%;
 	box-sizing: border-box;
+}
+
+#popup-footbar > button {
+	width: 60px;
 }
 
 #layer-ctrl {
