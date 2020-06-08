@@ -349,8 +349,10 @@ function create_df_view(layerGroup) {
 		layerGroup.removeLayer(thisLayer);
 		sendToServer(data, 'clear');
 		// put on new layer
+		let selfColor = thisLayer._layers[Object.keys(thisLayer._layers)[0]].options.color;
+		console.log(selfColor);
 		layer = L.geoJSON(layer, {
-			color: getNextColor(),
+			color: selfColor,
 			fillOpacity: 0.9
 		});
 		layerGroup.addLayer(layer);
