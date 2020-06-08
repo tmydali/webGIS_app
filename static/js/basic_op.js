@@ -1,9 +1,10 @@
 import { sendToServer } from './data_sender.js'
-
+import { sidPointer, layerList, focusLayerSid } from './layers.js'
+import { getLayerBySid, addToLayerList, clearLayer, layerMove} from './layers.js'
 
 export function setButtonCallback(map, layerGroup) {
 	// tools
-	$("#clear_btn").button().click( () => clearLayer(layerGroup));
+	$("#clear_btn").button().click(clearLayer);
 	$("#buffer_btn").button()
 		.click( () => {
 		let buffered = buffer(layerGroup, 500);
@@ -21,7 +22,7 @@ export function setButtonCallback(map, layerGroup) {
 			var onReaderLoad = (e) => {
 				try {
 					var obj = JSON.parse(e.target.result);
-					var layer = L.geoJSON(obj).addTo(layerGroup);
+					var layer = L.geoJSON(obj, {'fillOpacity': 0.9}).addTo(layerGroup);
 					console.log(layer);
 					// send data to server
 					var data = {
@@ -32,10 +33,11 @@ export function setButtonCallback(map, layerGroup) {
 					sendToServer(data, 'new');
 					$('#popup-window').hide();
 					
-					var input = [layerGroup.getLayerId(layer).toString()];
-					add_to_layer_list(input);
-					
-					
+					var input ={
+						'name': 'layer ' + sidPointer,
+						'layer': layer
+					}
+					addToLayerList(input);
 				}
 				catch(err) {
 					console.log(err);
@@ -53,7 +55,7 @@ export function setButtonCallback(map, layerGroup) {
 		new_layer(map,layerGroup);
 	});
 	
-	$('#send_msg').button().click( () => {
+	$('#overlay').button().click( () => {
 		var set_op = ['union', 'intersection', 'symmetric_difference', 'difference', 'identity'];
 		var selector = $('<select id=method-sel>').selectmenu();
 		for(var i of set_op) {
@@ -62,21 +64,16 @@ export function setButtonCallback(map, layerGroup) {
 		selector.show();
 		
 		// get all layer ids
-		var layer_id = [];
-		var list = layerGroup.getLayers();
-		for(var i of list) {
-			layer_id.push(layerGroup.getLayerId(i))
-		}
-		console.log(layer_id);
-		
 		var layerSel1 = $('<select id=layer-sel1>').selectmenu();
-		for(var i of layer_id) {
-			layerSel1.append($('<option>', {value: i, text: i}));
+		for(let obj of layerList) {
+			let id = layerGroup.getLayerId(obj.layer);
+			layerSel1.append($('<option>', {value: id, text: obj.name}));
 		}
 		layerSel1.show();
 		var layerSel2 = $('<select id=layer-sel2>').selectmenu();
-		for(var i of layer_id) {
-			layerSel2.append($('<option>', {value: i, text: i}));
+		for(let obj of layerList) {
+			let id = layerGroup.getLayerId(obj.layer);
+			layerSel2.append($('<option>', {value: id, text: obj.name}));
 		}
 		layerSel2.show();
 		
@@ -91,8 +88,12 @@ export function setButtonCallback(map, layerGroup) {
 			};
 			sendToServer(data, 'overlay', [layerGroup, newLayer]);
 			$('#popup-window').hide();
-			var input =[newId.toString()];
-			add_to_layer_list(input);
+			
+			var input ={
+				'name': 'layer ' + sidPointer,
+				'layer': newLayer
+			}
+			addToLayerList(input);
 		}).appendTo('#popup-footbar');
 		
 		$('#popup-content').html('method')
@@ -107,6 +108,7 @@ export function setButtonCallback(map, layerGroup) {
 	});
 	
 	$('#feat_attr').button().click( () => {
+		if(layerList.length == 0) { return; }
 		$('#popup-content').html('<div id="df_container"></div>');
 		create_df_view(layerGroup);
 		$('#popup-window').css({'display': 'flex'});
@@ -118,37 +120,18 @@ export function setButtonCallback(map, layerGroup) {
 		$('#popup-footbar').empty();
 	});
 
+	// sidebar
 	$('#new_layer').button().click(() => {
 		new_layer(map,layerGroup);
 	});
-
-	$('.wp').click( (e) => {
-		if (e.target.classList.contains('layer_delete')) {
-			$(e.target.closest('.todotlist_item')).remove();
-		}
+	
+	$('#layer-up').button().click(() => {
+		layerMove('up');
 	});
-}
-function add_to_layer_list(input){
-
-	const result = `
-		  <div class="todotlist_item form-check">
-			<input class="layer_box_checkbox" type="checkbox" value="" id="defaultCheck1" checked="checked">
-			<button type="button" class="layer_box_content form-check-label" for="defaultCheck1">
-			${input}
-			</button>
-			<button type="button" class="layer_delete">刪除</button>
-			<hr>
-		  </div>`;
 	
-	$('#layer-box').append(result);
-	
-}
-function clearLayer(layerGroup) {
-	console.log(layerGroup.getLayers());
-	layerGroup.clearLayers();
-	
-	var data = { 'method': 'clear-all' };
-	sendToServer(data, 'clear-all');
+	$('#layer-down').button().click(() => {
+		layerMove('down');
+	});
 
 }
 
@@ -167,7 +150,6 @@ function newLayerMode(map, layerGroup, type) {
 	$('<button>').text('Finish')
 		.button()
 		.appendTo($('#toolbar'))
-		.addClass('tools')
 		.addClass('tools')
 		.click( function(e) {
 			$('.tools').each( function(index) {
@@ -191,8 +173,12 @@ function newLayerMode(map, layerGroup, type) {
 				'data': layer.toGeoJSON()
 			};
 			sendToServer(data, 'new');
-			var input =[layerGroup.getLayerId(layer).toString()];
-			add_to_layer_list(input);
+		
+			var input ={
+				'name': $('#text').val(),
+				'layer': layer
+			}
+			addToLayerList(input);
 			$(this).remove();
 		});
 	
@@ -205,29 +191,30 @@ function newLayerMode(map, layerGroup, type) {
 		
 	}
 	else if(type == 'polyline') {
-		var pline = map.editTools.startPolyline()
+		var pline = map.editTools.startPolyline();
 		pline.addTo(layer);
 		map.on('editable:drawing:end', (e) => {
-			pline = map.editTools.startPolyline()
+			pline = map.editTools.startPolyline();
 			pline.addTo(layer);
 		});
 	}
 	else if (type == 'polygon') {
-		var pgon = map.editTools.startPolygon()
+		var pgon = map.editTools.startPolygon();
+		pgon.setStyle({'fillOpacity': 0.9});
 		pgon.addTo(layer);
 		map.on('editable:drawing:end', (e) => {
-			pgon = map.editTools.startPolygon()
+			pgon = map.editTools.startPolygon();
+			pgon.setStyle({'fillOpacity': 0.9});
 			pgon.addTo(layer);
 		});
 	}
 }
 
 function create_df_view(layerGroup) {
-	var thisLayer = layerGroup.getLayers()[0];
-	var layer = thisLayer.toGeoJSON();
+	let thisLayer = getLayerBySid(focusLayerSid).layer;
+	let layer = thisLayer.toGeoJSON();
 	console.log(layerGroup);
-	var column = 0;
-	var prop_name_div = $('<div id="prop_name">').addClass('feature_title').appendTo('#df_container');
+	let prop_name_div = $('<div id="prop_name">').addClass('feature_title').appendTo('#df_container');
 	
 	for(let i=0; i<layer.features.length; i++) {
 		let feature_div = $('<div>').addClass('feature_div').appendTo('#df_container');
@@ -239,7 +226,6 @@ function create_df_view(layerGroup) {
 				'data-dtype': 'str'
 			}).appendTo(feature_div);
 			if(i == 0) {
-				column++;
 				createPropNameDiv(ckey);
 			}
 		});
@@ -260,17 +246,25 @@ function create_df_view(layerGroup) {
 					'data-dtype': 'str'
 				}).appendTo(this);
 			});
-			column++;
+			let column = $('.feature_title').children().length;
+			$('.feature_div').each(function() {
+				$(this).show();
+			});
 			let str = 'repeat(' + column + ',100px)';
 			$('.feature_div').css({'grid-template-columns': str});
 			$('.feature_title').css({'grid-template-columns': str});
 		}
 		
 	}).appendTo(prop_name_div);
-	column++;
 	
-	column = $('.feature_title').children().length;
+	let column = $('.feature_title').children().length;
 	var str = 'repeat(' + column + ',100px)';
+	if(column <= 1) {
+		// remove empty div if no feature
+		$('.feature_div').each(function() {
+			$(this).hide();
+		});
+	}
 	$('.feature_div').css({'grid-template-columns': str});
 	$('.feature_title').css({'grid-template-columns': str});
 	
@@ -302,6 +296,7 @@ function create_df_view(layerGroup) {
 		// put on new layer
 		layer = L.geoJSON(layer);
 		layerGroup.addLayer(layer);
+		getLayerBySid(focusLayerSid).layer = layer;
 		var data = {
 			'method': 'new',
 			'id': [layerGroup.getLayerId(layer).toString()],
@@ -353,6 +348,7 @@ function createPropNameDiv(key) {
 	}).appendTo('#prop_name');
 	title_div.append(del_btn).append(rename_btn).append(text);	
 }
+
 function new_layer(map, layerGroup){
 	var selector = $('<select id=sel>').selectmenu()
 			.append($('<option>', {value: 'point', text: 'Point'}))

@@ -10,5 +10,5 @@ L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_toke
     accessToken: 'pk.eyJ1IjoidG15ZGFsaSIsImEiOiJjazB3MzlrMXowdTUwM2lwZGlhMml5ZDduIn0.i56vbB-1XI6HPe_zEcDr1g'
 }).addTo(map);
 
-var layerGroup = L.layerGroup().addTo(map);
+export var layerGroup = L.layerGroup().addTo(map);
 Basics.setButtonCallback(map, layerGroup);

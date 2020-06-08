@@ -15,22 +15,45 @@
 		<div id="map-wrapper">
 			<div id="mapid"></div>
 			<div id="toolbar" class="toolbar">
-				<button id="clear_btn" class="tools">Clear Map</button>
-				<button id="buffer_btn" class="tools">500m Buffer</button>
 				<button id="upload_btn" class="tools">Upload</button>
 				<button id="newPT_btn" class="tools">New Layer</button>
-				<button id="send_msg" class="tools">Send</button>
-				<button id="feat_attr" class="tools">Feature Attribute</button>
+				
+				<!--	
+				<div class="menu">
+					<button class="dropbtn">files</button>
+					<div id = file class="dropdown-content">
+						<button id="upload_btn" class="tools">Upload</button>
+						<button id="newPT_btn" class="tools">New Layer</button>
+
+					</div>
+				</div>
+					-->
+				<div id = "edit_menu" class="menu">
+					<button class="dropbtn">edit</button>
+					<div id = edit class="dropdown-content">
+						<button id="clear_btn" class="tools">Clear Map</button>
+						<button id="feat_attr" class="tools">Feature Attribute</button>
+					</div>
+				</div>		
+				<div id = "geo_menu" class="menu">
+					<button class="dropbtn">geoprocessing</button>
+					<div id = edit class="dropdown-content">
+						<button id="buffer_btn" class="tools">500m Buffer</button>
+						<button id="overlay" class="tools">Overlay</button>
+					</div>	
+				</div>
 			</div>
 			<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 		</div>
 		<div id="sidebar" class="workplace">
 			<div id="info-wp" class="wp"></div>
 			<div id="layer-wp" class="wp">
-				<button class="layer-button">Layer</button>
-				<button id='new_layer'>add more...</button>
-				<div id="layer-box">
+				<div id='layer-ctrl'>
+					<button id='new_layer' class='tools'>Add...</button>
+					<button id='layer-up' class='tools'>↑</button>
+					<button id='layer-down' class='tools'>↓</button>
 				</div>
+				<div id="layer-box"></div>
 			</div>
 		</div>
 		<div id="popup-window">
