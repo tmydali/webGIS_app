@@ -5,6 +5,24 @@ import { getLayerBySid, addToLayerList, clearLayer, layerMove} from './layers.js
 export function setButtonCallback(map, layerGroup) {
 	// tools
 	
+	
+	$("#save_all_btn").button().click(() => {
+		
+		// get all layer ids
+		$('#popup-footbar').empty();
+		
+		for(let obj of layerList) {
+			let file_name = obj.name;
+			let data =JSON.stringify(obj.layer.toGeoJSON());
+			
+			let data_fin ="data:text/json;charset=utf-8," + encodeURIComponent(data);
+			let url = $('<a/>').text("download JSON")
+			.attr({'href':data_fin,'download':file_name+".geojson",'id':'urll'})
+			.appendTo('#map-wrapper').click(function() { $(this).remove() })[0].click();
+		}
+		
+		
+	});
 	$("#save_btn").button().click(() => {
 		
 		// get all layer ids
@@ -18,13 +36,12 @@ export function setButtonCallback(map, layerGroup) {
 		layerSel1.show();
 		
 		var button = $('<button/>').text("OK").click( () => {
-			var data2=$('#layer-sel1').val();
-			var data3=$('#layer-sel1').text();
-			var data_fin ="data:text/json;charset=utf-8," + encodeURIComponent(data2);
-			var url = $('<a/>').text("download JSON")
-			.attr({'href':data_fin,'download':data3+".geojson",'id':'urll'})
+			let data2=$('#layer-sel1').val();
+			let data3=$('#layer-sel1').find("option:selected").text();
+			let data_fin ="data:text/json;charset=utf-8," + encodeURIComponent(data2);
+			let url = $('<a/>').text("download JSON")
+			.attr({'href':data_fin,'download':data3+".geojson"})
 			.appendTo('#popup-window').click(function() { $(this).remove() })[0].click();
-			
 			$('#popup-window').hide();
 		}).appendTo('#popup-footbar');
 		$('#popup-content').html('layer')
