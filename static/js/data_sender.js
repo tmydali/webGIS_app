@@ -1,4 +1,5 @@
 import { layerList } from './layers.js'
+import { getNextColor } from './layers.js'
 
 export function sendToServer(data, method, item=null) {
 	var message = JSON.stringify(data);
@@ -29,7 +30,7 @@ export function sendToServer(data, method, item=null) {
 			data: message,
 			success: function(data) {
 				L.geoJSON(data, {
-					color: 'green',
+					color: getNextColor(),
 					fillOpacity: 0.9
 				}).addTo(newLayer);
 				console.log('Overlay Success');
