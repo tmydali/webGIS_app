@@ -15,12 +15,30 @@
 		<div id="map-wrapper">
 			<div id="mapid"></div>
 			<div id="toolbar" class="toolbar">
-				<button id="clear_btn" class="tools">Clear Map</button>
-				<button id="buffer_btn" class="tools">Buffer</button>
-				<button id="upload_btn" class="tools">Upload</button>
-				<button id="newPT_btn" class="tools">New Layer</button>
-				<button id="overlay" class="tools">Overlay</button>
-				<button id="feat_attr" class="tools">Feature Attribute</button>
+				<div id ="file_menu" class="menu">
+					<button class="dropbtn">files</button>
+					<div id = "files" class="dropdown-content">
+						<button id="upload_btn" class="tools">Upload</button>
+						<button id="newPT_btn" class="tools">New Layer</button>
+						<button id="save_btn" class="tools">Save</button>
+						<button id="save_all_btn" class="tools">Save All</button>
+					</div>
+				</div>
+					
+				<div id = "edit_menu" class="menu">
+					<button class="dropbtn">edit</button>
+					<div id = "edit" class="dropdown-content">
+						<button id="clear_btn" class="tools">Clear Map</button>
+						<button id="feat_attr" class="tools">Feature Attribute</button>
+					</div>
+				</div>		
+				<div id = "geo_menu" class="menu">
+					<button class="dropbtn">geoprocessing</button>
+					<div id = "geo" class="dropdown-content">
+						<button id="buffer_btn" class="tools">500m Buffer</button>
+						<button id="overlay" class="tools">Overlay</button>
+					</div>	
+				</div>
 			</div>
 			<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 		</div>
